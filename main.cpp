@@ -5,162 +5,204 @@
 using namespace std;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
-const int TILE_SIZE = 10;
-int snakeX = SCREEN_WIDTH / 2;
-int snakeY = SCREEN_HEIGHT / 2;
-int foodX, foodY;
-int direction = 1; 
-int snakeSize = 1;
-int snakeXHistory[SCREEN_WIDTH * SCREEN_HEIGHT];
-int snakeYHistory[SCREEN_WIDTH * SCREEN_HEIGHT];
-bool gameOver = 0;
-
-int delay=120;
-int score=0;
+const int GRID_SIZE = 20;
+int consumeCount=0;
+bool bonus=false;
 
 SDL_Window* window;
-SDL_bool bordered=SDL_TRUE;
 SDL_Renderer* renderer;
-TTF_Font* font =nullptr;
-SDL_Surface* surface;
-SDL_Texture* texture;
+TTF_Font* font;
 
-void PlaceFood() {
-    int maxX = (SCREEN_WIDTH / TILE_SIZE);
-    int maxY = (SCREEN_HEIGHT / TILE_SIZE) ;
-    bool regenerate=1;
-    while(regenerate)
-    {
-        int pass1,pass2;
-    foodX = (rand() % maxX) * TILE_SIZE;
-    foodY = (rand() % maxY) * TILE_SIZE;
+std::vector<int> snakeX, snakeY;
+std::vector<int> obstacleX, obstacleY;
+int foodX, foodY,bonusfoodX, bonusfoodY;
+int score = 0;
+int delay = 120;
+long long int prevtime,currtime;
 
-     for (int i = 0; i < snakeSize; ++i) {
-        if ((foodX == snakeXHistory[i] && foodY == snakeYHistory[i]) || foodY<70 )
-            regenerate=1;
-        else regenerate=0;
-     }
-    }
-   
-}
+int direction =3;
 
-void CheckCollision() {
-    if (snakeX < 0 || snakeY < 55 || snakeX >= SCREEN_WIDTH|| snakeY >= SCREEN_HEIGHT)
-       gameOver=1;
+bool gameOver = false;
+bool obstacleMovingRight = true;
 
-    for (int i = 0; i < snakeSize; ++i) {
-        if (snakeX == snakeXHistory[i] && snakeY == snakeYHistory[i])
-            gameOver=1;
-
-    }
-
-}
-
-void process_input() {
+void handleInput() {
     SDL_Event e;
-    while (SDL_PollEvent(&e) != 0) {
-        if (e.type == SDL_QUIT)
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
             exit(0);
-        else if (e.type == SDL_KEYDOWN) {
+        } else if (e.type == SDL_KEYDOWN) {
             switch (e.key.keysym.sym) {
                 case SDLK_UP:
-                    direction = 0;
-                    break;
-                case SDLK_RIGHT:
-                    direction = 1;
+                    if (direction != 1) direction = 0;
                     break;
                 case SDLK_DOWN:
-                    direction = 2;
+                    if (direction != 0) direction = 1;
                     break;
                 case SDLK_LEFT:
-                    direction = 3;
+                    if (direction != 3) direction = 2;
+                    break;
+                case SDLK_RIGHT:
+                    if (direction != 2) direction = 3;
                     break;
                 case SDLK_r:
-                    if (gameOver) {
-                        score = 0;
-                        snakeSize=1;
-                        direction=1;
-                        delay = 120;
-                        gameOver = 0;
-                        snakeX = SCREEN_WIDTH / 2;
-                       snakeY = SCREEN_HEIGHT / 2;
-                    }
+                    direction=4;
                     break;
-            }
+             }
         }
     }
 }
 
-void Update() {
-    if (gameOver) {
-        return; 
-    }
-    int headX = snakeX;
-    int headY = snakeY;
+void spawnFood() {
+    int maxX = (SCREEN_WIDTH / GRID_SIZE);
+    int maxY = (SCREEN_HEIGHT / GRID_SIZE) ;
+    bool regenerate=1;
+    while(regenerate)
+    {
+    foodX = (rand() % maxX) * GRID_SIZE;
+    foodY = (rand() % maxY) * GRID_SIZE;
 
-    switch (direction) {
-        case 0:
-            headY -= TILE_SIZE;
-            break;
-        case 1:
-            headX += TILE_SIZE;
-            break;
-        case 2:
-            headY += TILE_SIZE;
-            break;
-        case 3:
-            headX -= TILE_SIZE;
-            break;
-    }
-
-    snakeXHistory[0] = snakeX;
-    snakeYHistory[0] = snakeY;
-
-    snakeX = headX;
-    snakeY = headY;
-
-    if (headX == foodX && headY == foodY) {
-        PlaceFood();
-        snakeSize++;
-        score+=10;
-        delay-=5;
-    }
-
-    for (int i = snakeSize - 1; i > 0; --i) {
-        snakeXHistory[i] = snakeXHistory[i - 1];
-        snakeYHistory[i] = snakeYHistory[i - 1];
+     for (int i = 0; i < snakeX.size(); ++i) {
+        if ((foodX == snakeX[i] && foodY == snakeY[i]) || foodY<41 || foodY>SCREEN_HEIGHT-21)
+            regenerate=1;
+        else regenerate=0;
+     }
     }
 }
 
-void Render() {
+void spawnbonusFood() {
+    int maxX = (SCREEN_WIDTH / GRID_SIZE);
+    int maxY = (SCREEN_HEIGHT / GRID_SIZE) ;
+    bool bonusregenerate=1;
+    while(bonusregenerate)
+    {
+    bonusfoodX = (rand() % maxX) * GRID_SIZE;
+    bonusfoodY = (rand() % maxY) * GRID_SIZE;
+
+     for (int i = 0; i < snakeX.size(); ++i) {
+        if ((bonusfoodX == snakeX[i] && bonusfoodY == snakeY[i]) || bonusfoodY<41 || bonusfoodY>SCREEN_HEIGHT-21)
+            bonusregenerate=1;
+        else bonusregenerate=0;
+     }
+    }
+}
+
+void update() {
+    if (gameOver && direction==4) {
+        score = 0;
+        direction=3;
+        delay = 120;
+        gameOver = false;
+        snakeX.clear();
+        snakeY.clear();
+        snakeX.push_back(SCREEN_WIDTH / 2);
+        snakeY.push_back(SCREEN_HEIGHT / 2);
+    }
+    else if(gameOver)
+        return;
+
+    int newHeadX = snakeX.front();
+    int newHeadY = snakeY.front();
+
+    switch (direction) {
+        case 0:
+            newHeadY -= GRID_SIZE;
+            break;
+        case 1:
+            newHeadY += GRID_SIZE;
+            break;
+        case 2:
+            newHeadX -= GRID_SIZE;
+            break;
+        case 3:
+            newHeadX += GRID_SIZE;
+            break;
+    }
+
+    newHeadX = (newHeadX + SCREEN_WIDTH) % SCREEN_WIDTH;
+    
+    if(newHeadY<=41 || newHeadY>=SCREEN_HEIGHT-20)
+           gameOver=true;
+
+    snakeX.insert(snakeX.begin(), newHeadX);
+    snakeY.insert(snakeY.begin(), newHeadY);
+
+    
+    for (int i = 1; i < snakeX.size(); ++i) {
+        if (newHeadX == snakeX[i] && newHeadY == snakeY[i]) {
+            gameOver = true;
+        }
+    }
+
+    if (newHeadX == foodX && newHeadY == foodY) {
+        score += 10;
+        consumeCount++;
+        spawnFood();
+    } 
+    else {
+        snakeX.pop_back();
+        snakeY.pop_back();
+    }
+    if(consumeCount%5==0 && consumeCount>0)
+    {
+        prevtime=SDL_GetTicks();
+        consumeCount=0;
+        spawnbonusFood();
+        bonus=true;
+    }
+    currtime=SDL_GetTicks();
+    if(currtime-prevtime>=4000 && bonus==true)
+    bonus =false;
+    if(bonus==true && newHeadX == bonusfoodX && newHeadY==bonusfoodY)
+        {
+            score+=20;
+            bonus=false;
+        }
+    
+}
+
+void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect borderup = {0,60 ,SCREEN_WIDTH ,1 };
-    SDL_RenderFillRect(renderer, &borderup);
     
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect borderup = {0,40,SCREEN_WIDTH ,1 };
+    SDL_RenderFillRect(renderer, &borderup);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    for (int i = 0; i < snakeSize; ++i) {
-        SDL_Rect rect = {snakeXHistory[i], snakeYHistory[i], TILE_SIZE, TILE_SIZE};
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect borderlow = {0,SCREEN_HEIGHT-2,SCREEN_WIDTH ,2};
+    SDL_RenderFillRect(renderer, &borderlow);
+    
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    SDL_Rect rect = {snakeX[0], snakeY[0], GRID_SIZE, GRID_SIZE};
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    for (int i = 1; i < snakeX.size(); ++i) {
+        SDL_Rect rect = {snakeX[i], snakeY[i], GRID_SIZE, GRID_SIZE};
         SDL_RenderFillRect(renderer, &rect);
     }
 
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_Rect foodRect = {foodX, foodY, TILE_SIZE, TILE_SIZE};
+    SDL_Rect foodRect = {foodX, foodY, GRID_SIZE, GRID_SIZE};
     SDL_RenderFillRect(renderer, &foodRect);
+
+    if(bonus==true)
+    {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_Rect bonusfoodRect = {bonusfoodX, bonusfoodY, GRID_SIZE, GRID_SIZE};
+    SDL_RenderFillRect(renderer, &bonusfoodRect);
+    }
 
     SDL_Color textColor = {255, 255, 255, 255};
     std::string scoreText = "Score: " + std::to_string(score);
-    surface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, scoreText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    SDL_Rect scoreRect = {SCREEN_WIDTH / 2 - 50, 0 , 100, 50};
+
+    SDL_Rect scoreRect = {SCREEN_WIDTH/2-50, 5, 100, 30};
     SDL_RenderCopy(renderer, texture, nullptr, &scoreRect);
     SDL_DestroyTexture(texture);
 
-    if (gameOver) {
+     if (gameOver) {
         SDL_Color gameOverColor = {255, 0, 0, 255};
         std::string gameOverText = "Game Over!";
         surface = TTF_RenderText_Solid(font, gameOverText.c_str(), gameOverColor);
@@ -182,16 +224,17 @@ void Render() {
 
 void setup()
 {
-    SDL_Init(SDL_INIT_VIDEO);
-    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT,0);
-    void SDL_SetWindowBordered(SDL_Window * window,
-                           SDL_bool bordered);
+   SDL_Init(SDL_INIT_VIDEO);
+    window = SDL_CreateWindow("Snake Game with Moving Obstacles", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     TTF_Init();
-    font = TTF_OpenFont("font/Zebulon.otf", 24);
+    font = TTF_OpenFont("font/Zebulon Bold.otf", 24);
 
-    PlaceFood();
+    snakeX.push_back(SCREEN_WIDTH / 2);
+    snakeY.push_back(SCREEN_HEIGHT / 2);
+
+    spawnFood();
 }
 
 void destroyWindow()
@@ -205,21 +248,18 @@ void destroyWindow()
 
 
 int main(int argc, char *argv[]) {
-
-    setup();
+   
+   setup();
 
     while (true) {
-        process_input();
-        Update();
+        handleInput();
+        update();
+        render();
 
-        Render();
-
-        SDL_Delay(delay);
-
-        CheckCollision();
+        SDL_Delay(delay); 
     }
-
-    destroyWindow();  
+    
+    destroyWindow();
 
     return 0;
 }
