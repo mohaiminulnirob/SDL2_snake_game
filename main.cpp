@@ -59,7 +59,7 @@ void handleInput() {
                     if(start==false)start=true;
                     break;
                 case SDLK_m:
-                    if(start==true)start=false;
+                    if(start==true && gameOver==false)start=false;
                     break;
                 case SDLK_ESCAPE:
                     exit(0);
@@ -78,8 +78,18 @@ void spawnFood() {
     foodY = (rand() % maxY) * GRID_SIZE;
 
      for (int i = 0; i < snakeX.size(); ++i) {
-        if ((foodX == snakeX[i] && foodY == snakeY[i]) || foodY<61 || foodY>SCREEN_HEIGHT-21)
+        if ((foodX == snakeX[i] && foodY == snakeY[i]) || foodY<80 || foodY>SCREEN_HEIGHT-40)
             regenerate=1;
+        else if
+       (
+       foodX>=SCREEN_WIDTH-100 && foodY>=60 && foodY<=80 ||
+       foodX>=SCREEN_WIDTH-100 && foodY>=SCREEN_HEIGHT-60 && foodY<=SCREEN_HEIGHT-40 ||
+       foodX>=SCREEN_WIDTH-40 && foodY>=60 && foodY<=120 ||
+       foodX>=SCREEN_WIDTH-40 && foodY>=SCREEN_HEIGHT-120 && foodY<=SCREEN_HEIGHT-60 ||
+       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2-100 && foodY<=SCREEN_HEIGHT/2-60 ||
+       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2+60 && foodY<=SCREEN_HEIGHT/2+100
+       )
+          regenerate=1;
         else regenerate=0;
      }
     }
@@ -95,8 +105,18 @@ void spawnbonusFood() {
     bonusfoodY = (rand() % maxY) * GRID_SIZE;
 
      for (int i = 0; i < snakeX.size(); ++i) {
-        if ((bonusfoodX == snakeX[i] && bonusfoodY == snakeY[i]) || bonusfoodY<60 || bonusfoodY>SCREEN_HEIGHT-21)
+        if ((bonusfoodX == snakeX[i] && bonusfoodY == snakeY[i]) || bonusfoodY<80 || bonusfoodY>SCREEN_HEIGHT-40)
             bonusregenerate=1;
+        else if
+       (
+       foodX>=SCREEN_WIDTH-100 && foodY>=60 && foodY<=80 ||
+       foodX>=SCREEN_WIDTH-100 && foodY>=SCREEN_HEIGHT-60 && foodY<=SCREEN_HEIGHT-40 ||
+       foodX>=SCREEN_WIDTH-40 && foodY>=60 && foodY<=120 ||
+       foodX>=SCREEN_WIDTH-40 && foodY>=SCREEN_HEIGHT-120 && foodY<=SCREEN_HEIGHT-60 ||
+       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2-100 && foodY<=SCREEN_HEIGHT/2-60 ||
+       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2+60 && foodY<=SCREEN_HEIGHT/2+100
+       )
+          bonusregenerate=1;
         else bonusregenerate=0;
      }
     }
@@ -146,11 +166,22 @@ void update() {
 
     newHeadX = (newHeadX + SCREEN_WIDTH) % SCREEN_WIDTH;
     
-    if(newHeadY<=41 || newHeadY>=SCREEN_HEIGHT-20)
-           gameOver=true;
 
     snakeX.insert(snakeX.begin(), newHeadX);
     snakeY.insert(snakeY.begin(), newHeadY);
+
+     if(newHeadY<=60 || newHeadY>=SCREEN_HEIGHT-40 )
+           gameOver=true;
+
+    if(
+       newHeadX>=SCREEN_WIDTH-100 && newHeadY>=60 && newHeadY<=80 ||
+       newHeadX>=SCREEN_WIDTH-100 && newHeadY>=SCREEN_HEIGHT-60 && newHeadY<=SCREEN_HEIGHT-40 ||
+       newHeadX>=SCREEN_WIDTH-40 && newHeadY>=60 && newHeadY<=120 ||
+       newHeadX>=SCREEN_WIDTH-40 && newHeadY>=SCREEN_HEIGHT-120 && newHeadY<=SCREEN_HEIGHT-60 ||
+       newHeadX>=SCREEN_WIDTH/2-80 && newHeadX<=SCREEN_WIDTH/2+60 && newHeadY>=SCREEN_HEIGHT/2-100 && newHeadY<=SCREEN_HEIGHT/2-60 ||
+       newHeadX>=SCREEN_WIDTH/2-80 && newHeadX<=SCREEN_WIDTH/2+60 && newHeadY>=SCREEN_HEIGHT/2+60 && newHeadY<=SCREEN_HEIGHT/2+100
+       )
+           gameOver=true;
 
     
     for (int i = 1; i < snakeX.size(); ++i) {
@@ -312,13 +343,37 @@ void render() {
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect borderup = {0,40,SCREEN_WIDTH ,10 };
+    SDL_Rect borderup = {0,40,SCREEN_WIDTH ,20 };
     SDL_RenderFillRect(renderer, &borderup);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect borderlow = {0,SCREEN_HEIGHT-10,SCREEN_WIDTH ,10};
+    SDL_Rect borderlow = {0,SCREEN_HEIGHT-20,SCREEN_WIDTH ,20};
     SDL_RenderFillRect(renderer, &borderlow);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle1rect = {SCREEN_WIDTH-80, 60, 80, 20};
+    SDL_RenderFillRect(renderer, &obstackle1rect);
     
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle2rect = {SCREEN_WIDTH-20, 80, 20, 60};
+    SDL_RenderFillRect(renderer, &obstackle2rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle3rect = {SCREEN_WIDTH-80, SCREEN_HEIGHT-40, 80, 20};
+    SDL_RenderFillRect(renderer, &obstackle3rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle4rect = {SCREEN_WIDTH-20, SCREEN_HEIGHT-100, 20, 60};
+    SDL_RenderFillRect(renderer, &obstackle4rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle5rect = {SCREEN_WIDTH/2-60, SCREEN_HEIGHT/2-80, 120, 20};
+    SDL_RenderFillRect(renderer, &obstackle5rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstackle6rect = {SCREEN_WIDTH/2-60, SCREEN_HEIGHT/2+80, 120, 20};
+    SDL_RenderFillRect(renderer, &obstackle6rect);
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
     SDL_Rect rect = {snakeX[0], snakeY[0], GRID_SIZE, GRID_SIZE};
     SDL_RenderFillRect(renderer, &rect);
