@@ -19,13 +19,16 @@ std::vector<int> snakeX, snakeY;
 std::vector<int> obstacleX, obstacleY;
 int foodX, foodY,bonusfoodX, bonusfoodY;
 int score = 0,highscore=0;
-int delay = 150;
+int delay =120;
 long long int prevtime,currtime;
 
-int direction =3;
+int direction =3,level;
 
 bool gameOver = false;
-bool obstacleMovingRight = true;
+int obstacle1X=SCREEN_WIDTH-80,obstacle1Y=60,obstacle1W=80,obstacle2X=SCREEN_WIDTH-20,obstacle2Y=80,obstacle2H=60;
+int obstacle3X=SCREEN_WIDTH-80,obstacle3Y=SCREEN_HEIGHT-40,obstacle4X=SCREEN_WIDTH-20,obstacle4Y=SCREEN_HEIGHT-100,obstacle4H=60;
+int obstacle5X=SCREEN_WIDTH/2-60,obstacle5Y=SCREEN_HEIGHT/2-80,obstacle5W=120,obstacle6X=SCREEN_WIDTH/2-60,obstacle6Y=SCREEN_HEIGHT/2+80,obstacle6W=120;
+int obsDirection=1;
 
 void handleInput() {
     SDL_Event e;
@@ -50,16 +53,32 @@ void handleInput() {
                     direction=4;
                     break;
                 case SDLK_1:
-                    if(start==false)start=true;
+                    if(start==false)
+                    {
+                        level=1;
+                        start=true;
+                    }
                     break;
                 case SDLK_2:
-                    if(start==false)start=true;
+                    if(start==false)
+                    {
+                        level=2;
+                        start=true;
+                    }
                     break;
                 case SDLK_3:
-                    if(start==false)start=true;
+                    if(start==false)
+                    {
+                        level=3;
+                        start=true;
+                    }
                     break;
                 case SDLK_m:
-                    if(start==true && gameOver==false)start=false;
+                    if(start==true && gameOver==true)
+                    {
+                        start=false;
+                        direction=4;
+                    }
                     break;
                 case SDLK_ESCAPE:
                     exit(0);
@@ -78,16 +97,16 @@ void spawnFood() {
     foodY = (rand() % maxY) * GRID_SIZE;
 
      for (int i = 0; i < snakeX.size(); ++i) {
-        if ((foodX == snakeX[i] && foodY == snakeY[i]) || foodY<80 || foodY>SCREEN_HEIGHT-40)
+        if ((foodX == snakeX[i] && foodY == snakeY[i]) || foodY<=60 || foodY>=SCREEN_HEIGHT-40 || foodX>=SCREEN_WIDTH-100)
             regenerate=1;
         else if
        (
-       foodX>=SCREEN_WIDTH-100 && foodY>=60 && foodY<=80 ||
-       foodX>=SCREEN_WIDTH-100 && foodY>=SCREEN_HEIGHT-60 && foodY<=SCREEN_HEIGHT-40 ||
-       foodX>=SCREEN_WIDTH-40 && foodY>=60 && foodY<=120 ||
-       foodX>=SCREEN_WIDTH-40 && foodY>=SCREEN_HEIGHT-120 && foodY<=SCREEN_HEIGHT-60 ||
-       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2-100 && foodY<=SCREEN_HEIGHT/2-60 ||
-       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2+60 && foodY<=SCREEN_HEIGHT/2+100
+       foodX>=obstacle1X-20 && foodY>=obstacle1Y && foodY<=obstacle1Y+20 ||
+       foodX>=obstacle2X-20 && foodY>=obstacle2Y-20 && foodY<=obstacle2Y+obstacle2H ||
+       foodX>=obstacle3X-20 && foodY>=obstacle3X-20 && foodY<obstacle3X+20||
+       foodX>=obstacle4X-20 && foodY>=obstacle4Y-20 && foodY<=obstacle4Y+60 ||
+       foodX>=obstacle5X-20 && foodX<=obstacle5X+obstacle5W && foodY>=obstacle5Y-20 && foodY<=obstacle5Y+20 ||
+       foodX>=obstacle6X-20 && foodX<=obstacle6X+obstacle6W && foodY>=obstacle6Y-20 && foodY<=obstacle6Y+20 
        )
           regenerate=1;
         else regenerate=0;
@@ -105,20 +124,42 @@ void spawnbonusFood() {
     bonusfoodY = (rand() % maxY) * GRID_SIZE;
 
      for (int i = 0; i < snakeX.size(); ++i) {
-        if ((bonusfoodX == snakeX[i] && bonusfoodY == snakeY[i]) || bonusfoodY<80 || bonusfoodY>SCREEN_HEIGHT-40)
+        if ((bonusfoodX == snakeX[i] && bonusfoodY == snakeY[i]) || bonusfoodY<=60 || bonusfoodY>=SCREEN_HEIGHT-40 || bonusfoodX>=SCREEN_WIDTH-100)
             bonusregenerate=1;
         else if
        (
-       foodX>=SCREEN_WIDTH-100 && foodY>=60 && foodY<=80 ||
-       foodX>=SCREEN_WIDTH-100 && foodY>=SCREEN_HEIGHT-60 && foodY<=SCREEN_HEIGHT-40 ||
-       foodX>=SCREEN_WIDTH-40 && foodY>=60 && foodY<=120 ||
-       foodX>=SCREEN_WIDTH-40 && foodY>=SCREEN_HEIGHT-120 && foodY<=SCREEN_HEIGHT-60 ||
-       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2-100 && foodY<=SCREEN_HEIGHT/2-60 ||
-       foodX>=SCREEN_WIDTH/2-80 && foodX<=SCREEN_WIDTH/2+60 && foodY>=SCREEN_HEIGHT/2+60 && foodY<=SCREEN_HEIGHT/2+100
+       bonusfoodX>=obstacle1X-20 && bonusfoodY>=obstacle1Y && bonusfoodY<=obstacle1Y+20 ||
+       bonusfoodX>=obstacle2X-20 && bonusfoodY>=obstacle2Y-20 && bonusfoodY<=obstacle2Y+obstacle2H ||
+       bonusfoodX>=obstacle3X-20 && bonusfoodY>=obstacle3X-20 && bonusfoodY<obstacle3X+20||
+       bonusfoodX>=obstacle4X-20 && bonusfoodY>=obstacle4Y-20 && bonusfoodY<=obstacle4Y+60 ||
+       bonusfoodX>=obstacle5X-20 && bonusfoodX<=obstacle5X+obstacle5W && bonusfoodY>=obstacle5Y-20 && bonusfoodY<=obstacle5Y+20 ||
+       bonusfoodX>=obstacle6X-20 && bonusfoodX<=obstacle6X+obstacle6W && bonusfoodY>=obstacle6Y-20 && bonusfoodY<=obstacle6Y+20 
        )
           bonusregenerate=1;
         else bonusregenerate=0;
      }
+    }
+}
+
+void moveObstacle()
+{
+    if(obstacle2Y>=SCREEN_HEIGHT/2+20-60)
+    obsDirection=2;
+    else if(obstacle2Y<=80)
+    obsDirection=1;
+    if(obsDirection==1)
+    {
+        obstacle1Y+=GRID_SIZE-10;
+        obstacle2Y+=GRID_SIZE-10;
+        obstacle3Y-=GRID_SIZE-10;
+        obstacle4Y-=GRID_SIZE-10;
+    }
+    else
+    {
+    obstacle1Y-=GRID_SIZE-10;
+    obstacle2Y-=GRID_SIZE-10;
+    obstacle3Y+=GRID_SIZE-10;
+    obstacle4Y+=GRID_SIZE-10;
     }
 }
 
@@ -127,6 +168,7 @@ void update() {
         score = 0;
         direction=3;
         delay = 120;
+        consumeCount=0;
         gameOver = false;
         snakeX.clear();
         snakeY.clear();
@@ -145,6 +187,9 @@ void update() {
            highscore=score;
         return;
     }
+    
+    if(level==3)
+    moveObstacle();
 
     int newHeadX = snakeX.front();
     int newHeadY = snakeY.front();
@@ -170,18 +215,20 @@ void update() {
     snakeX.insert(snakeX.begin(), newHeadX);
     snakeY.insert(snakeY.begin(), newHeadY);
 
-     if(newHeadY<=60 || newHeadY>=SCREEN_HEIGHT-40 )
+     if(newHeadY<60 || newHeadY>SCREEN_HEIGHT-40 )
            gameOver=true;
-
+    else if(level==2 || level==3)
+    {
     if(
-       newHeadX>=SCREEN_WIDTH-100 && newHeadY>=60 && newHeadY<=80 ||
-       newHeadX>=SCREEN_WIDTH-100 && newHeadY>=SCREEN_HEIGHT-60 && newHeadY<=SCREEN_HEIGHT-40 ||
-       newHeadX>=SCREEN_WIDTH-40 && newHeadY>=60 && newHeadY<=120 ||
-       newHeadX>=SCREEN_WIDTH-40 && newHeadY>=SCREEN_HEIGHT-120 && newHeadY<=SCREEN_HEIGHT-60 ||
-       newHeadX>=SCREEN_WIDTH/2-80 && newHeadX<=SCREEN_WIDTH/2+60 && newHeadY>=SCREEN_HEIGHT/2-100 && newHeadY<=SCREEN_HEIGHT/2-60 ||
-       newHeadX>=SCREEN_WIDTH/2-80 && newHeadX<=SCREEN_WIDTH/2+60 && newHeadY>=SCREEN_HEIGHT/2+60 && newHeadY<=SCREEN_HEIGHT/2+100
+       newHeadX>obstacle1X-20 && newHeadY>obstacle1Y-20 && newHeadY<obstacle1Y+20 ||
+       newHeadX>obstacle2X-20 && newHeadY>obstacle2Y-20 && newHeadY<obstacle1Y+obstacle2H ||
+       newHeadX>obstacle3X-20 && newHeadY>obstacle3Y-20 && newHeadY<obstacle3Y+20 ||
+       newHeadX>obstacle4X-20 && newHeadY>obstacle4Y-20 && newHeadY<obstacle4Y+obstacle4H ||
+       newHeadX>obstacle5X-20 && newHeadX<obstacle5X+obstacle5W && newHeadY>obstacle5Y-20 && newHeadY<obstacle5Y+20 ||
+       newHeadX>obstacle6X-20 && newHeadX<obstacle6X+obstacle6W && newHeadY>obstacle6Y-20 && newHeadY<obstacle6Y+20
        )
            gameOver=true;
+    }
 
     
     for (int i = 1; i < snakeX.size(); ++i) {
@@ -281,6 +328,7 @@ void render() {
     }
 
     if (gameOver) {
+        SDL_Delay(delay);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
@@ -350,29 +398,32 @@ void render() {
     SDL_Rect borderlow = {0,SCREEN_HEIGHT-20,SCREEN_WIDTH ,20};
     SDL_RenderFillRect(renderer, &borderlow);
 
+    if(level==2 || level==3)
+    {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle1rect = {SCREEN_WIDTH-80, 60, 80, 20};
-    SDL_RenderFillRect(renderer, &obstackle1rect);
+    SDL_Rect obstacle1rect = {obstacle1X, obstacle1Y, 80, 20};
+    SDL_RenderFillRect(renderer, &obstacle1rect);
     
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle2rect = {SCREEN_WIDTH-20, 80, 20, 60};
-    SDL_RenderFillRect(renderer, &obstackle2rect);
+    SDL_Rect obstacle2rect = {obstacle2X, obstacle2Y, 20, 60};
+    SDL_RenderFillRect(renderer, &obstacle2rect);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle3rect = {SCREEN_WIDTH-80, SCREEN_HEIGHT-40, 80, 20};
-    SDL_RenderFillRect(renderer, &obstackle3rect);
+    SDL_Rect obstacle3rect = {obstacle3X, obstacle3Y, 80, 20};
+    SDL_RenderFillRect(renderer, &obstacle3rect);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle4rect = {SCREEN_WIDTH-20, SCREEN_HEIGHT-100, 20, 60};
-    SDL_RenderFillRect(renderer, &obstackle4rect);
+    SDL_Rect obstacle4rect = {obstacle4X, obstacle4Y, 20, 60};
+    SDL_RenderFillRect(renderer, &obstacle4rect);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle5rect = {SCREEN_WIDTH/2-60, SCREEN_HEIGHT/2-80, 120, 20};
-    SDL_RenderFillRect(renderer, &obstackle5rect);
+    SDL_Rect obstacle5rect = {obstacle5X,obstacle5Y, 120, 20};
+    SDL_RenderFillRect(renderer, &obstacle5rect);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_Rect obstackle6rect = {SCREEN_WIDTH/2-60, SCREEN_HEIGHT/2+80, 120, 20};
-    SDL_RenderFillRect(renderer, &obstackle6rect);
+    SDL_Rect obstacle6rect = {obstacle6X, obstacle6Y, 120, 20};
+    SDL_RenderFillRect(renderer, &obstacle6rect);
+    }
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
     SDL_Rect rect = {snakeX[0], snakeY[0], GRID_SIZE, GRID_SIZE};
