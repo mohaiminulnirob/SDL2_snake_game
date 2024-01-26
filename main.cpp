@@ -29,18 +29,23 @@ bool gameOver = false,collision=false;
 int obstacle1X=SCREEN_WIDTH-80,obstacle1Y=60,obstacle1W=80,obstacle2X=SCREEN_WIDTH-20,obstacle2Y=80,obstacle2H=60;
 int obstacle3X=SCREEN_WIDTH-80,obstacle3Y=SCREEN_HEIGHT-40,obstacle4X=SCREEN_WIDTH-20,obstacle4Y=SCREEN_HEIGHT-100,obstacle4H=60;
 int obstacle5X=SCREEN_WIDTH/2-60,obstacle5Y=SCREEN_HEIGHT/2-80,obstacle5W=120,obstacle6X=SCREEN_WIDTH/2-60,obstacle6Y=SCREEN_HEIGHT/2+80,obstacle6W=120;
+int obstacle7X=SCREEN_WIDTH/2-10,obstacle7Y=60,obstacle7H=100,obstacle8X=SCREEN_WIDTH/2-10,obstacle8Y=SCREEN_HEIGHT/2+100,obstacle8H=120;
+int obstacle9X=SCREEN_WIDTH/2-60,obstacle9Y=SCREEN_HEIGHT/2;
 int obsDirection=1;
+int obsdirection2=1;
 
 Mix_Chunk* startSound = nullptr;
 Mix_Chunk* bonusSound = nullptr;
 Mix_Chunk* bonusSound2 = nullptr;
 Mix_Chunk* eatFoodSound = nullptr;
 Mix_Chunk* collisionSound = nullptr;
+Mix_Chunk* levelSound = nullptr;
 int startChannel = -1;
 int bonusChannel = -1;
 int bonusChannel2 = -1;
 int eatFoodChannel = -1;
 int collisionchannel =-1;
+int levelchannel=-1;
 void handleInput() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -98,7 +103,7 @@ void handleInput() {
     }
 }
 
-void spawnFood() {
+void placeFood() {
     int maxX = (SCREEN_WIDTH / GRID_SIZE);
     int maxY = (SCREEN_HEIGHT / GRID_SIZE) ;
     bool regenerate=1;
@@ -117,7 +122,10 @@ void spawnFood() {
        foodX>=obstacle3X-20 && foodY>=obstacle3X-20 && foodY<obstacle3X+20||
        foodX>=obstacle4X-20 && foodY>=obstacle4Y-20 && foodY<=obstacle4Y+60 ||
        foodX>=obstacle5X-20 && foodX<=obstacle5X+obstacle5W && foodY>=obstacle5Y-20 && foodY<=obstacle5Y+20 ||
-       foodX>=obstacle6X-20 && foodX<=obstacle6X+obstacle6W && foodY>=obstacle6Y-20 && foodY<=obstacle6Y+20 
+       foodX>=obstacle6X-20 && foodX<=obstacle6X+obstacle6W && foodY>=obstacle6Y-20 && foodY<=obstacle6Y+20 ||
+       foodX>obstacle7X-20 &&  foodX<obstacle7X+20 &&foodY>obstacle7Y-20 && foodY<obstacle7Y+obstacle7H ||
+       foodX>obstacle8X-20 &&  foodX<obstacle8X+20 &&foodY>obstacle8Y-20 && foodY<obstacle8Y+obstacle8H ||
+       foodX>obstacle9X-20 && foodX<obstacle9X+20 && foodY>obstacle9Y-20 && foodY<obstacle9Y+20
        )
           regenerate=1;
         else regenerate=0;
@@ -125,7 +133,7 @@ void spawnFood() {
     }
 }
 
-void spawnbonusFood() {
+void placebonusFood() {
     int maxX = (SCREEN_WIDTH / GRID_SIZE);
     int maxY = (SCREEN_HEIGHT / GRID_SIZE) ;
     bool bonusregenerate=1;
@@ -144,7 +152,10 @@ void spawnbonusFood() {
        bonusfoodX>=obstacle3X-20 && bonusfoodY>=obstacle3X-20 && bonusfoodY<obstacle3X+20||
        bonusfoodX>=obstacle4X-20 && bonusfoodY>=obstacle4Y-20 && bonusfoodY<=obstacle4Y+60 ||
        bonusfoodX>=obstacle5X-20 && bonusfoodX<=obstacle5X+obstacle5W && bonusfoodY>=obstacle5Y-20 && bonusfoodY<=obstacle5Y+20 ||
-       bonusfoodX>=obstacle6X-20 && bonusfoodX<=obstacle6X+obstacle6W && bonusfoodY>=obstacle6Y-20 && bonusfoodY<=obstacle6Y+20 
+       bonusfoodX>=obstacle6X-20 && bonusfoodX<=obstacle6X+obstacle6W && bonusfoodY>=obstacle6Y-20 && bonusfoodY<=obstacle6Y+20 ||
+       bonusfoodX>obstacle7X-20 &&  bonusfoodX<obstacle7X+20 && bonusfoodY>obstacle7Y-20 && bonusfoodY<obstacle7Y+obstacle7H ||
+       bonusfoodX>obstacle8X-20 &&  bonusfoodX<obstacle8X+20 && bonusfoodY>obstacle8Y-20 && bonusfoodY<obstacle8Y+obstacle8H ||
+       bonusfoodX>obstacle9X-20 && bonusfoodX<obstacle9X+20 && bonusfoodY>obstacle9Y-20 && bonusfoodY<obstacle9Y+20
        )
           bonusregenerate=1;
         else bonusregenerate=0;
@@ -172,6 +183,18 @@ void moveObstacle()
     obstacle3Y+=GRID_SIZE-10;
     obstacle4Y+=GRID_SIZE-10;
     }
+    if(obstacle9Y==SCREEN_HEIGHT/2-60)
+    obsdirection2=1;
+    else if(obstacle9Y==SCREEN_HEIGHT/2+60)
+    obsdirection2=2;
+    if(obsdirection2==1)
+    {
+        obstacle9Y+=GRID_SIZE-15;
+    }
+    else
+    {
+    obstacle9Y-=GRID_SIZE-15;
+    }
 }
 
 void update() {
@@ -183,12 +206,12 @@ void update() {
         gameOver = false;
         snakeX.clear();
         snakeY.clear();
-        int x=-20;
+        int x=20;
        for(int i=0;i<3;i++)
         {
         snakeX.push_back(SCREEN_WIDTH / 2+x);
-        snakeY.push_back(SCREEN_HEIGHT / 2+x);
-        x+=20;
+        snakeY.push_back(SCREEN_HEIGHT / 2);
+        x-=20;
         }
 
     }
@@ -229,22 +252,23 @@ void update() {
      if(newHeadY<60 || newHeadY>SCREEN_HEIGHT-40 )
      {
            collisionchannel= Mix_PlayChannel(-1,collisionSound,0);
-           SDL_Delay(2000);
            gameOver=true;
      } 
     else if(level==2 || level==3)
     {
     if(
        newHeadX>obstacle1X-20 && newHeadY>obstacle1Y-20 && newHeadY<obstacle1Y+20 ||
-       newHeadX>obstacle2X-20 && newHeadY>obstacle2Y-20 && newHeadY<obstacle1Y+obstacle2H ||
+       newHeadX>obstacle2X-20 && newHeadY>obstacle2Y-20 && newHeadY<obstacle2Y+obstacle2H ||
        newHeadX>obstacle3X-20 && newHeadY>obstacle3Y-20 && newHeadY<obstacle3Y+20 ||
        newHeadX>obstacle4X-20 && newHeadY>obstacle4Y-20 && newHeadY<obstacle4Y+obstacle4H ||
        newHeadX>obstacle5X-20 && newHeadX<obstacle5X+obstacle5W && newHeadY>obstacle5Y-20 && newHeadY<obstacle5Y+20 ||
-       newHeadX>obstacle6X-20 && newHeadX<obstacle6X+obstacle6W && newHeadY>obstacle6Y-20 && newHeadY<obstacle6Y+20
+       newHeadX>obstacle6X-20 && newHeadX<obstacle6X+obstacle6W && newHeadY>obstacle6Y-20 && newHeadY<obstacle6Y+20 ||
+       newHeadX>obstacle7X-20 && newHeadX<obstacle7X+20 && newHeadY>obstacle7Y-20 && newHeadY<obstacle7Y+obstacle7H ||
+       newHeadX>obstacle8X-20 && newHeadX<obstacle8X+20 && newHeadY>obstacle8Y-20 && newHeadY<obstacle8Y+obstacle8H ||
+       newHeadX>obstacle9X-20 && newHeadX<obstacle9X+20 && newHeadY>obstacle9Y-20 && newHeadY<obstacle9Y+20
        )
        {
           collisionchannel= Mix_PlayChannel(-1,collisionSound,0);
-          SDL_Delay(2000);
            gameOver=true;
        }
     }
@@ -253,16 +277,31 @@ void update() {
     for (int i = 1; i < snakeX.size(); ++i) {
         if (newHeadX == snakeX[i] && newHeadY == snakeY[i]) {
             collisionchannel= Mix_PlayChannel(-1,collisionSound,0);
-            SDL_Delay(2000);
             gameOver = true;
         }
     }
 
     if (newHeadX == foodX && newHeadY == foodY) {
         score += 10;
+        if(level==1)
+        delay-=5;
+        else if(level==2)
+        delay-=3;
+        if(score>=150)
+        {
+        level=3;
+        levelchannel= Mix_PlayChannel(-1,bonusSound2,0);
+        delay=120;
+        }
+        else if(score>=100 && level==1)
+        {
+        level=2;
+        levelchannel= Mix_PlayChannel(-1,bonusSound2,0);
+        delay=120;
+        }
         eatFoodChannel=Mix_PlayChannel(-1, eatFoodSound, 0);
         consumeCount++;
-        spawnFood();
+        placeFood();
     } 
     else {
         snakeX.pop_back();
@@ -272,7 +311,7 @@ void update() {
     {
         prevtime=SDL_GetTicks();
         consumeCount=0;
-        spawnbonusFood();
+        placebonusFood();
         bonusChannel= Mix_PlayChannel(-1,bonusSound,0);
         bonus=true;
         NEWGRID=GRID_SIZE;
@@ -285,10 +324,21 @@ void update() {
     }
     if(bonus==true && newHeadX == bonusfoodX && newHeadY==bonusfoodY)
         {
-            eatFoodChannel=Mix_PlayChannel(-1, eatFoodSound, 0);
-            score+=20;
-            bonusChannel2= Mix_PlayChannel(-1,bonusSound2,0);
-            bonus=false;
+        eatFoodChannel=Mix_PlayChannel(-1, eatFoodSound, 0);
+        score+=20;
+        if(score>=150 && level!=3)
+        {
+        level=3;
+        levelchannel= Mix_PlayChannel(-1,bonusSound2,0);
+        delay=120;
+        }
+        else if(score>=100 && level==1)
+        {
+        level=2;
+        levelchannel= Mix_PlayChannel(-1,bonusSound2,0);
+        delay=120;
+        }
+        bonus=false;
         }
     
 }
@@ -350,13 +400,8 @@ void render() {
     SDL_Rect escrect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2+125 , 300, 30};
     SDL_RenderCopy(renderer, texture, nullptr, &escrect);
     SDL_DestroyTexture(texture);
-    //startChannel=Mix_PlayChannel(-1, startSound, 0);
-    //Mix_HaltChannel(startChannel);
     SDL_RenderPresent(renderer);
     return;
-    }
-    else{
-       // Mix_HaltChannel(startChannel);
     }
 
     if (gameOver) {
@@ -374,7 +419,7 @@ void render() {
         SDL_DestroyTexture(texture);
         
         SDL_Color highscoreColor = {100, 255, 50, 255};
-        std::string highscoreText = "HIGH SCORE: "+ std::to_string(highscore);
+        std::string highscoreText = "HIGHEST SCORE: "+ std::to_string(highscore);
         surface = TTF_RenderText_Solid(font, highscoreText.c_str(), highscoreColor);
         texture = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
@@ -418,13 +463,18 @@ void render() {
         SDL_Rect MenuRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 + 50, 300, 30};
         SDL_RenderCopy(renderer, texture, nullptr, &MenuRect);
         SDL_DestroyTexture(texture);
-        //gameOverChannel=Mix_PlayChannel(-1,gameOverSound, 0);
         SDL_RenderPresent(renderer);
         return;
     }
-    else
-    {
-       //Mix_HaltChannel(gameOverChannel);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    SDL_Rect rect = {snakeX[0], snakeY[0], GRID_SIZE, GRID_SIZE};
+    SDL_RenderFillRect(renderer, &rect);
+
+    SDL_SetRenderDrawColor(renderer, 50, 150, 150, 255);
+    for (int i = 1; i < snakeX.size(); ++i) {
+        SDL_Rect rect = {snakeX[i], snakeY[i], GRID_SIZE, GRID_SIZE};
+        SDL_RenderFillRect(renderer, &rect);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -460,16 +510,19 @@ void render() {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_Rect obstacle6rect = {obstacle6X, obstacle6Y, 120, 20};
     SDL_RenderFillRect(renderer, &obstacle6rect);
+    if(level==3 || level==2)
+    {
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstacle7rect = {obstacle7X, obstacle7Y,20, obstacle7H};
+    SDL_RenderFillRect(renderer, &obstacle7rect);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstacle8rect = {obstacle8X, obstacle8Y,20, obstacle8H};
+    SDL_RenderFillRect(renderer, &obstacle8rect);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_Rect obstacle9rect = {obstacle9X, obstacle9Y,20, 20};
+    SDL_RenderFillRect(renderer, &obstacle9rect);
+
     }
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    SDL_Rect rect = {snakeX[0], snakeY[0], GRID_SIZE, GRID_SIZE};
-    SDL_RenderFillRect(renderer, &rect);
-
-    SDL_SetRenderDrawColor(renderer, 50, 150, 150, 255);
-    for (int i = 1; i < snakeX.size(); ++i) {
-        SDL_Rect rect = {snakeX[i], snakeY[i], GRID_SIZE, GRID_SIZE};
-        SDL_RenderFillRect(renderer, &rect);
     }
 
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
@@ -484,7 +537,6 @@ void render() {
       NEWGRID=GRID_SIZE;
     SDL_Rect bonusfoodRect = {bonusfoodX, bonusfoodY, NEWGRID, NEWGRID};
     SDL_RenderFillRect(renderer, &bonusfoodRect);
-    //bonusChannel= Mix_PlayChannel(-1,bonusSound,0);
     }
 
     SDL_Color textColor = {255, 255, 255, 255};
@@ -496,6 +548,17 @@ void render() {
     SDL_Rect scoreRect = {SCREEN_WIDTH/2-50, 5, 100, 30};
     SDL_RenderCopy(renderer, texture, nullptr, &scoreRect);
     SDL_DestroyTexture(texture);
+
+    SDL_Color levelColor = {100, 255, 50, 255};
+    std::string levelText = "LEVEL " + std::to_string(level);
+    surface = TTF_RenderText_Solid(font, levelText.c_str(), levelColor);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    SDL_Rect levelRect = {SCREEN_WIDTH/2+100, 5, 100, 30};
+    SDL_RenderCopy(renderer, texture, nullptr, &levelRect);
+    SDL_DestroyTexture(texture);
+
 
     SDL_RenderPresent(renderer);
 }
@@ -512,29 +575,23 @@ void setup()
     SDL_Init(SDL_INIT_AUDIO);
     Mix_OpenAudio(20000, MIX_DEFAULT_FORMAT, 2, 200);
     startSound = Mix_LoadWAV("start.wav");
-    if (!startSound) {
-        cerr << "Failed to load start sound: " << Mix_GetError() << endl;
-    }
     bonusSound=  Mix_LoadWAV("bonus.wav"); 
     bonusSound2=  Mix_LoadWAV("bonus2.wav"); 
     eatFoodSound = Mix_LoadWAV("eat_food.wav");
-    if (!eatFoodSound) {
-        cerr << "Failed to load eat food sound: " << Mix_GetError() << endl;
-    }
-
+    levelSound = Mix_LoadWAV("level.wav");
     collisionSound = Mix_LoadWAV("collision.wav");
 
 
-    int x=-20;
+    int x=20;
        for(int i=0;i<3;i++)
         {
         snakeX.push_back(SCREEN_WIDTH / 2+x);
-        snakeY.push_back(SCREEN_HEIGHT / 2+x);
-        x+=20;
+        snakeY.push_back(SCREEN_HEIGHT / 2);
+        x-=20;
         }
 
     startChannel=Mix_PlayChannel(-1, startSound, 2);
-    spawnFood();
+    placeFood();
 }
 
 void destroyWindow()
@@ -543,8 +600,10 @@ void destroyWindow()
     TTF_Quit();
     Mix_FreeChunk(startSound);
     Mix_FreeChunk(bonusSound);
+    Mix_FreeChunk(bonusSound2);
     Mix_FreeChunk(eatFoodSound);
     Mix_FreeChunk(collisionSound);
+    Mix_FreeChunk(levelSound);
     Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
