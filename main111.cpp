@@ -350,13 +350,8 @@ void render() {
     SDL_Rect escrect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2+125 , 300, 30};
     SDL_RenderCopy(renderer, texture, nullptr, &escrect);
     SDL_DestroyTexture(texture);
-    //startChannel=Mix_PlayChannel(-1, startSound, 0);
-    //Mix_HaltChannel(startChannel);
     SDL_RenderPresent(renderer);
     return;
-    }
-    else{
-       // Mix_HaltChannel(startChannel);
     }
 
     if (gameOver) {
@@ -418,13 +413,8 @@ void render() {
         SDL_Rect MenuRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 + 50, 300, 30};
         SDL_RenderCopy(renderer, texture, nullptr, &MenuRect);
         SDL_DestroyTexture(texture);
-        //gameOverChannel=Mix_PlayChannel(-1,gameOverSound, 0);
         SDL_RenderPresent(renderer);
         return;
-    }
-    else
-    {
-       //Mix_HaltChannel(gameOverChannel);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -484,7 +474,6 @@ void render() {
       NEWGRID=GRID_SIZE;
     SDL_Rect bonusfoodRect = {bonusfoodX, bonusfoodY, NEWGRID, NEWGRID};
     SDL_RenderFillRect(renderer, &bonusfoodRect);
-    //bonusChannel= Mix_PlayChannel(-1,bonusSound,0);
     }
 
     SDL_Color textColor = {255, 255, 255, 255};
